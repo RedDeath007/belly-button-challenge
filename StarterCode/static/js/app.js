@@ -1,12 +1,8 @@
 //store url
 const url = 'https://static.bc-edx.com/data/dl-1-2/m14/lms/starter/samples.json'
 
-function buildMetadata(sample) {
- d3.json(url).then((data) => {
-   let metadata = data.metadata;
-   // you need to filter the data for the object with the desired sample number
-   let resultArray = metadata.filter(sampleObj => sampleObj.id == sample);
-   let result = resultArray[0];
+
+function buildMetadata(meta) {
    // Use d3 to select the panel with id of sample-metadata
    let demoinfo = d3.select("#sample-metadata");
 
@@ -15,16 +11,16 @@ function buildMetadata(sample) {
 
    // Hint: Inside the loop, you will need to use d3 to append new
    // tags for each key-value in the metadata.
-   for (key in result){
-     PANEL.append("h6").text(`${key.toUpperCase()}: ${result[key]}`);
-}});
+   for (key in meta){
+     demoinfo.append("h6").text(`${key.toUpperCase()}: ${meta[key]}`);
+    }
 }
 
-function buildCharts(sample) {
- d3.json(url).then((data) => {
-    let samples = data.samples;
-    let resultArray = samples.filter(sampleObj => sampleObj.id == sample);
-    let result = resultArray[0];
+
+function buildCharts(subjectSample) {
+    let otu_ids = subjectSample.otu_ids;
+    let otu_labels = subjectSample.otu_labels;
+    let sample_values = subjectSample.sample_values;
    // Build a Bubble Chart
    let bubbleLayout = {title: "Bubble Chart for Sample"
     };
@@ -41,9 +37,7 @@ function buildCharts(sample) {
    }];
    Plotly.newPlot('bubble', bubbleData, bubbleLayout)
 //Plot the bar graph
-    let otu_ids = result.otu_ids;
-    let otu_labels = result.otu_labels;
-    let sample_values = result.sample_values;
+
    //let yticks = specify your ticks…..
 
    let barData = [{
@@ -59,23 +53,52 @@ function buildCharts(sample) {
    };
  //Plot the bar 
    Plotly.newPlot("bar", barData, barLayout)
- });
+
 }
+
+
+function popDrop(ids){
+    // Grab a reference to the dropdown select element
+    let dropdown = d3.select("#selDataset");
+    //<option value="volvo">Brick</option>
+    ids.forEach(id => {
+        console.log(id);
+        dropdown.append('option').attr('value', id).text(id);
+    });
+}
+
+
 function init() {
- // Grab a reference to the dropdown select element
-……
- // Use the list of sample names to populate the select options
- d3.json(url).then((data) => {
-   let sampleNames = data.names;
-………………………..
-   };
-   // Use the first sample from the list to build the initial plots
-…………………………..
- });
+    // Use the list of sample names to populate the select options
+    d3.json(url).then((data) => {
+        let names = data.names;
+        console.log(names);
+        popDrop(names);
+        // Use the first sample from the list to build the initial plots
+        optionChanged(names[0]);
+    });
 }
-function optionChanged(newSample) {
- // Fetch new data each time a new sample is selected
- …………………
+
+
+function filtering(items, subjectID) {
+    let resultArray = items.filter(item => item.id == subjectID);
+    let result = resultArray[0];
+    return result;
 }
+
+function optionChanged(subjectID) {
+    console.log(`optionChanged ${subjectID}`);
+    // Fetch new data each time a new sample is selected
+    d3.json(url).then((data) => {
+        let metadata = data.metadata;
+        let samples = data.samples;
+        let subjectMetadata = filtering(metadata, subjectID);
+        let subjectSamples = filtering(samples, subjectID);
+        buildMetadata(subjectMetadata);
+        buildCharts(subjectSamples);
+
+    });
+}
+
 // Initialize the dashboard
 init();

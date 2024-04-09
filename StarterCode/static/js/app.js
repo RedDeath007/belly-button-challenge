@@ -38,12 +38,14 @@ function buildCharts(subjectSample) {
    Plotly.newPlot('bubble', bubbleData, bubbleLayout)
 //Plot the bar graph
 
-   //let yticks = specify your ticks…..
+   
 
    let barData = [{
-    x: otu_ids,
-    y: sample_values,
-    text: otu_labels
+    type: 'bar',
+    y: otu_ids.slice(0,10).map(id => `Otu ID ${id}`).reverse(),
+    x: sample_values.slice(0,10).reverse(),
+    text: otu_labels.slice(0,10).reverse(),
+    orientation: 'h'
    }];
 
      
